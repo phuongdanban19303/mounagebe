@@ -1,5 +1,6 @@
 package com.example.model.Invertory;
 
+import com.example.entity.Inventory;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -11,4 +12,14 @@ public class InventoryResponse {
     private Integer quantityOnHand;
     private Integer reservedQuantity;
     private Integer availableQuantity;
-    private LocalDate lastStocktakeDate;}
+    private LocalDate lastStocktakeDate;
+
+    public static InventoryResponse fromEntity(Inventory entity) {
+        InventoryResponse res = new InventoryResponse();
+        res.setProductId(entity.getProduct().getId());
+        res.setProductName(entity.getProduct().getProductName());
+        res.setQuantityOnHand(entity.getQuantityOnHand());
+        res.setReservedQuantity(entity.getReservedQuantity());
+        res.setAvailableQuantity(entity.getAvailableQuantity());
+        return res;
+    }}

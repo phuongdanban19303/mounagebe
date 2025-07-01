@@ -2,5 +2,34 @@ package com.example.repository;
 
 import com.example.entity.Sale;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-public interface SaleRepository extends JpaRepository<Sale, Integer> {}
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+public interface SaleRepository extends JpaRepository<Sale, Integer> {
+    @Query(value = "SELECT DATE_FORMAT(sale_date, '%Y-%m-%d') AS period, SUM(total_amount) AS total_revenue FROM sales WHERE sale_date BETWEEN :startDate AND :endDate GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getRevenueByDay(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+    @Query(value = "SELECT CONCAT(YEAR(sale_date), '-W', LPAD(WEEK(sale_date, 1), 2, '0')) AS period, SUM(total_amount) AS total_revenue FROM sales WHERE sale_date BETWEEN :startDate AND :endDate GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getRevenueByWeek(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+    @Query(value = "SELECT DATE_FORMAT(sale_date, '%Y-%m') AS period, SUM(total_amount) AS total_revenue FROM sales WHERE sale_date BETWEEN :startDate AND :endDate GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getRevenueByMonth(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+    @Query(value = "SELECT CONCAT(YEAR(sale_date), '-Q', QUARTER(sale_date)) AS period, SUM(total_amount) AS total_revenue FROM sales WHERE sale_date BETWEEN :startDate AND :endDate GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getRevenueByQuarter(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+
+    @Query(value = "SELECT YEAR(sale_date) AS period, SUM(total_amount) AS total_revenue FROM sales WHERE sale_date BETWEEN :startDate AND :endDate GROUP BY period ORDER BY period", nativeQuery = true)
+    List<Object[]> getRevenueByYear(@Param("startDate") Instant startDate, @Param("endDate") Instant endDate);
+    Optional<Sale> findBySaleNumber(String saleNumber);
+    @Query("SELECT COALESCE(SUM(s.totalAmount), 0) FROM Sale s WHERE s.saleDate >= :start AND s.saleDate < :end")
+    BigDecimal getRevenueByDate(@Param("start") Instant start, @Param("end") Instant end);
+
+    @Query("SELECT COUNT(s) FROM Sale s WHERE s.saleDate BETWEEN :start AND :end")
+    Long countBySaleDate(@Param("start") Instant start, @Param("end") Instant end);
+}

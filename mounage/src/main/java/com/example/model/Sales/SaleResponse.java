@@ -8,6 +8,7 @@ import java.util.List;
 @Data
 public class SaleResponse {
     private Integer saleId;
+    private Integer customerId;
     private String saleNumber;
     private String customerName;
     private Instant saleDate;

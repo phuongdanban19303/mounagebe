@@ -38,7 +38,6 @@ public class CategoryApi {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAll() {
         return ResponseEntity.ok(categoryService.getAllCategories());
