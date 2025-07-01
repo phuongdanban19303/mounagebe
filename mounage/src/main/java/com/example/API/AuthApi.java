@@ -2,9 +2,11 @@ package com.example.API;
 
 import com.example.Config.JwtUtils;
 
+import com.example.model.Register.RegisterRequest;
 import com.example.model.TokenRequest;
 import com.example.model.TokenResponse;
 import com.example.model.UserUpdate;
+import com.example.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,4 +49,20 @@ public class AuthApi {
         response.setToken(token);
         response.setExpired(new Date().getTime() + jwtUtils.getExpiration());
         return new ResponseEntity<>(response, HttpStatus.OK);
-    }}
+    }
+
+        @Autowired
+        private UserService userService;
+
+        @PostMapping("/register")
+        public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+            try {
+                userService.registerUser(request);
+                return ResponseEntity.ok("User registered successfully");
+            } catch (IllegalArgumentException ex) {
+                return ResponseEntity.badRequest().body(ex.getMessage());
+            }
+        }
+    }
+
+

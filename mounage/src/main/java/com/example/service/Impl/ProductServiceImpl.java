@@ -114,7 +114,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     // ---------------------------
-    // 🧠 HÀM DÙNG CHUNG: convertToResponse
+    //  HÀM DÙNG CHUNG: convertToResponse
     // ---------------------------
     private ProductResponse convertToResponse(Product product) {
         ProductResponse dto = modelMapper.map(product, ProductResponse.class);

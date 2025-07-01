@@ -35,7 +35,7 @@ public class ReturnDetail {
     private BigDecimal unitPrice;
 
     @ColumnDefault("(`quantity_returned` * `unit_price`)")
-    @Column(name = "return_amount", precision = 15, scale = 2)
+    @Column(name = "return_amount", insertable = false, updatable = false)
     private BigDecimal returnAmount;
 
     @ColumnDefault("CURRENT_TIMESTAMP")

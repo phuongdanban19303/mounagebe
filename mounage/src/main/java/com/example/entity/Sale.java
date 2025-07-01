@@ -87,7 +87,7 @@ public class Sale {
     @OneToMany(mappedBy = "originalSale")
     private Set<Return> returns = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "sale")
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<SaleDetail> saleDetails = new LinkedHashSet<>();
 
 }

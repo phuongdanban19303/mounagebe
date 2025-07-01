@@ -30,14 +30,11 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private JwtAuthEntryPoint authEntryPointJwt;
 
     @Bean
-    public JwtFilter jwtTokenFilter() {
-        return new JwtFilter();
+    public JwtFilter jwtTokenFilter(UserService userService, JwtUtils jwtUtils) {
+        return new JwtFilter(userService, jwtUtils);
     }
 
     @Bean
@@ -51,37 +48,41 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider() {
+    public AuthenticationProvider authenticationProvider(UserService userService, PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userService);
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter, AuthenticationProvider authenticationProvider) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/api/auth/token").permitAll()
+                                .requestMatchers("/api/auth/register").permitAll()
+                                .requestMatchers("/api/auth/forgot-password").permitAll()
+                                .requestMatchers("/api/auth/verify-code").permitAll()
+                                .requestMatchers("/api/auth/reset-password").permitAll()
 
                                 // Chỉ GET mới cho USER
-                                .requestMatchers(HttpMethod.GET, "/api/product/**").hasAnyRole("ADMIN", "USER")
+                                .requestMatchers(HttpMethod.GET, "/api/product/**").permitAll()
 
                                 // POST, PUT, DELETE chỉ ADMIN
                                 .requestMatchers(HttpMethod.POST, "/api/product/**").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("ADMIN")
                                 .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("ADMIN")
 // CATEGORY (giống product)
-                                .requestMatchers(HttpMethod.GET, "/api/categories/**").hasAnyRole("ADMIN", "USER")
+                                .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                                 .requestMatchers("/api/categories/**").hasRole("ADMIN")
                                 // Các request còn lại bắt buộc phải login
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPointJwt))
-                .addFilterBefore(jwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
-                .authenticationProvider(authenticationProvider());
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .authenticationProvider(authenticationProvider);
 
         return http.build();
     }

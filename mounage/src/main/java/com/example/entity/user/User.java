@@ -72,4 +72,13 @@ public class User {
     @OneToMany(mappedBy = "updatedBy")
     private Set<SystemSetting> systemSettings = new LinkedHashSet<>();
 
+    @Column(name = "reset_token", length = 10)
+    private String resetToken;
+
+    @Column(name = "reset_token_expired_at")
+    private Instant resetTokenExpiredAt;
+
+    @Column(name = "reset_token_used")
+    private Boolean resetTokenUsed;
+
 }

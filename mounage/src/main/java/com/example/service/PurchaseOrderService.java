@@ -12,4 +12,8 @@ public interface PurchaseOrderService {
     // void confirmPurchaseOrder(Integer purchaseOrderId); // Đã gộp vào create
     List<PurchaseOrderResponse> getAllPurchaseOrders();
     List<PurchaseOrderDetailResponse> getOrderDetails(Integer purchaseOrderId);
+    PurchaseOrderResponse updatePurchaseOrder(Integer orderId, PurchaseOrderRequest request);
+    void deletePurchaseOrderById(Integer orderId);
+    boolean isOrderReceived(Integer orderId);
+
 }

@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,10 +19,13 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtFilter.class);
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private JwtUtils jwtUtils;
+    private final UserService userService;
+    private final JwtUtils jwtUtils;
+
+    public JwtFilter(UserService userService, JwtUtils jwtUtils) {
+        this.userService = userService;
+        this.jwtUtils = jwtUtils;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

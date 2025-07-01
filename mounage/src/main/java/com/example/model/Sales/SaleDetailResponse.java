@@ -6,6 +6,8 @@ import java.time.Instant;
 
 @Data
 public class SaleDetailResponse {
+    private Integer saledetailId;
+    private String bardcode;
     private Integer productId;
     private String productName;
     private Integer quantity;
