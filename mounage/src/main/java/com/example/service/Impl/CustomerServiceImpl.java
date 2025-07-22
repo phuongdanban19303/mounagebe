@@ -4,9 +4,12 @@ import com.example.entity.Customer;
 import com.example.model.Sales.CustomerRequest;
 import com.example.model.Sales.CustomerResponse;
 import com.example.repository.CustomerRepository;
+import com.example.service.Auditable;
 import com.example.service.CustomerService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -23,6 +26,8 @@ public class CustomerServiceImpl implements CustomerService {
     private CustomerRepository customerRepo;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public CustomerResponse findByPhone(String phone) {
@@ -34,14 +39,21 @@ public class CustomerServiceImpl implements CustomerService {
         return response;
 
     }
+
+    private final Object lock = new Object();
+
     private String generateCustomerCode() {
-        String lastCode = customerRepo.findMaxCustomerCode(); // VD: KH00009
-        int nextNumber = 1;
-        if (lastCode != null && lastCode.matches("KH\\d{5}")) {
-            nextNumber = Integer.parseInt(lastCode.substring(2)) + 1;
+        synchronized (lock) {
+            String lastCode = customerRepo.findMaxCustomerCode(); // VD: CT00012
+            int nextNumber = 1;
+            if (lastCode != null && lastCode.matches("DL\\d{5}")) {
+                nextNumber = Integer.parseInt(lastCode.substring(2)) + 1;
+            }
+            return String.format("DL%05d", nextNumber);
         }
-        return String.format("KH%05d", nextNumber);
     }
+
+
 
     @Override
     public List<CustomerResponse> getAllCustomers() {
@@ -51,18 +63,32 @@ public class CustomerServiceImpl implements CustomerService {
                 .collect(Collectors.toList());
     }
     @Override
+    @Auditable(action = "CREATE", tableName = "customer")
     public CustomerResponse createNewCustomer(CustomerRequest request) {
-        Customer customer = modelMapper.map(request, Customer.class);
-        customer.setCreatedAt(Instant.now());
-        customer.setCustomerCode(generateCustomerCode()); // <-- thêm dòng này
-        customer = customerRepo.save(customer);
-        CustomerResponse response = modelMapper.map(customer, CustomerResponse.class);
-        return response;
-
+        int maxRetries = 3;
+        for (int i = 0; i < maxRetries; i++) {
+            try {
+                Customer customer = modelMapper.map(request, Customer.class);
+                customer.setCreatedAt(Instant.now());
+                customer.setCustomerCode(generateCustomerCode());
+                customer = customerRepo.save(customer);
+                return modelMapper.map(customer, CustomerResponse.class);
+            } catch (DataIntegrityViolationException ex) {
+                if (ex.getMessage().contains("Duplicate entry")) {
+                    // Retry nếu trùng mã
+                    continue;
+                } else {
+                    throw ex;
+                }
+            }
+        }
+        throw new RuntimeException("Không thể tạo customer code duy nhất sau nhiều lần thử.");
     }
 
 
+
     @Override
+    @Auditable(action = "DELETE", tableName = "customer")
     public boolean deleteCustomerById(Integer customerId) {
         Optional<Customer> optionalCustomer = customerRepo.findById(customerId);
         if (optionalCustomer.isPresent()) {
@@ -72,6 +98,7 @@ public class CustomerServiceImpl implements CustomerService {
         return false;
     }
     @Override
+    @Auditable(action = "UPDATE", tableName = "customer")
     public CustomerResponse updateCustomer(Integer customerId, CustomerRequest request) {
         Optional<Customer> optionalCustomer = customerRepo.findById(customerId);
         if (optionalCustomer.isEmpty()) {

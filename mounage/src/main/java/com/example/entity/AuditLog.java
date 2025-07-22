@@ -27,8 +27,7 @@ public class AuditLog {
     @Column(name = "record_id", nullable = false)
     private Integer recordId;
 
-    @Lob
-    @Column(name = "action", nullable = false)
+    @Column(name = "action", nullable = false, length = 50)
     private String action;
 
     @Column(name = "old_values")

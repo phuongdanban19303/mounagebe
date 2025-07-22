@@ -11,6 +11,7 @@ import com.example.repository.CategoryRepository;
 import com.example.repository.PackagingRepository;
 import com.example.repository.ProductRepository;
 import com.example.repository.SupplierRepository;
+import com.example.service.Auditable;
 import com.example.service.ProductService;
 import com.example.service.SequenceService;
 import org.modelmapper.ModelMapper;
@@ -42,6 +43,7 @@ public class ProductServiceImpl implements ProductService {
     private SequenceService sequenceService;
 
     @Override
+    @Auditable(action = "CREATE", tableName = "product")
     public ProductResponse addProduct(ProductRequest dto) {
         Category category = categoryRepo.findById(dto.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Danh mục không tồn tại"));
@@ -72,6 +74,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Auditable(action = "UPDATE", tableName = "product")
     public ProductResponse updateProduct(Long id, ProductRequest dto) {
         Product product = productRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
@@ -92,6 +95,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Auditable(action = "DELETE", tableName = "product")
     public void deleteProduct(Long id) {
         Product product = productRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
