@@ -3,7 +3,7 @@ package com.example.model;
 import java.time.Instant;
 import java.util.Map;
 
-public class AuditLogResponse {
+public class    AuditLogResponse {
     private Integer id;
     private String tableName;
     private Integer recordId;
